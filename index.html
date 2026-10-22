@@ -2,116 +2,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Sets the character encoding for the webpage. -->
     <meta charset="UTF-8">
+
+    <!-- Makes the layout fit the width of phones, tablets, and computers. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Sets the title displayed in the browser tab. -->
     <title>Campus Lost and Found</title>
 
+    <!-- Connects this page to its CSS design file. -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Loads JavaScript after the HTML has been parsed. -->
     <script src="script.js" defer></script>
 </head>
 <body>
+    <!-- Main header and navigation links. -->
     <header class="page-header">
-        <h1>Campus Lost and Found</h1>
-        <p>Report lost items and help return found belongings to their owners.</p>
+        <div class="header-content">
+            <a class="brand" href="#dashboard" aria-label="Campus Lost and Found home">
+                <span class="brand-icon" aria-hidden="true">LF</span>
+                <span>Campus Lost and Found</span>
+            </a>
+
+            <nav class="main-navigation" aria-label="Main navigation">
+                <a href="#dashboard">Dashboard</a>
+                <a href="#reportFormSection">Submit Report</a>
+                <a href="#reportsSection">View Reports</a>
+            </nav>
+        </div>
+
+        <div class="welcome-section">
+            <p class="eyebrow">CAMPUS COMMUNITY</p>
+            <h1>Lost something? Found something?</h1>
+            <p>
+                Report missing belongings, find reported items, and help return
+                them to their owners.
+            </p>
+        </div>
     </header>
 
     <main class="main-container">
 
-        <!-- Summary cards display the total number of reports in each status. -->
-        <section class="summary-section">
-            <h2>Report Summary</h2>
+        <!-- Dashboard: summary cards and visual status overview. -->
+        <section id="dashboard" class="dashboard-section">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">OVERVIEW</p>
+                    <h2>Dashboard</h2>
+                    <p class="section-description">
+                        A quick overview of all saved lost-and-found reports.
+                    </p>
+                </div>
+            </div>
 
             <div class="summary-grid">
+                <article class="summary-card total-summary">
+                    <div class="summary-card-top">
+                        <span class="summary-icon" aria-hidden="true">#</span>
+                        <span class="summary-label">All Reports</span>
+                    </div>
+                    <p class="summary-number" id="totalCount">0</p>
+                    <p class="summary-note">Total saved reports</p>
+                </article>
+
                 <article class="summary-card lost-summary">
-                    <h3>Lost Items</h3>
-                    <p id="lostCount">0</p>
+                    <div class="summary-card-top">
+                        <span class="summary-icon" aria-hidden="true">!</span>
+                        <span class="summary-label">Lost Items</span>
+                    </div>
+                    <p class="summary-number" id="lostCount">0</p>
+                    <p class="summary-note">Items reported missing</p>
                 </article>
 
                 <article class="summary-card found-summary">
-                    <h3>Found Items</h3>
-                    <p id="foundCount">0</p>
+                    <div class="summary-card-top">
+                        <span class="summary-icon" aria-hidden="true">+</span>
+                        <span class="summary-label">Found Items</span>
+                    </div>
+                    <p class="summary-number" id="foundCount">0</p>
+                    <p class="summary-note">Items reported found</p>
                 </article>
 
                 <article class="summary-card returned-summary">
-                    <h3>Returned Items</h3>
-                    <p id="returnedCount">0</p>
+                    <div class="summary-card-top">
+                        <span class="summary-icon" aria-hidden="true">✓</span>
+                        <span class="summary-label">Returned Items</span>
+                    </div>
+                    <p class="summary-number" id="returnedCount">0</p>
+                    <p class="summary-note">Items returned to owners</p>
                 </article>
+            </div>
+
+            <!-- Progress bars are updated by JavaScript. -->
+            <div class="overview-panel">
+                <div class="overview-heading">
+                    <div>
+                        <h3>Report Status Overview</h3>
+                        <p>See how all saved reports are distributed.</p>
+                    </div>
+                    <span id="overviewTotal">0 reports</span>
+                </div>
+
+                <div class="progress-group">
+                    <div class="progress-label">
+                        <span>Lost</span>
+                        <span id="lostPercentage">0%</span>
+                    </div>
+                    <div
+                        class="progress-track"
+                        role="progressbar"
+                        aria-label="Lost reports"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="0"
+                        id="lostProgress"
+                    >
+                        <div class="progress-fill lost-fill" id="lostProgressFill"></div>
+                    </div>
+                </div>
+
+                <div class="progress-group">
+                    <div class="progress-label">
+                        <span>Found</span>
+                        <span id="foundPercentage">0%</span>
+                    </div>
+                    <div
+                        class="progress-track"
+                        role="progressbar"
+                        aria-label="Found reports"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="0"
+                        id="foundProgress"
+                    >
+                        <div class="progress-fill found-fill" id="foundProgressFill"></div>
+                    </div>
+                </div>
+
+                <div class="progress-group">
+                    <div class="progress-label">
+                        <span>Returned</span>
+                        <span id="returnedPercentage">0%</span>
+                    </div>
+                    <div
+                        class="progress-track"
+                        role="progressbar"
+                        aria-label="Returned reports"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="0"
+                        id="returnedProgress"
+                    >
+                        <div class="progress-fill returned-fill" id="returnedProgressFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <div>
+                    <h3>What would you like to do?</h3>
+                    <p>Choose an action to get started.</p>
+                </div>
+                <div class="quick-action-buttons">
+                    <a class="button-link primary-link" href="#reportFormSection">
+                        + Submit a Report
+                    </a>
+                    <a class="button-link secondary-link" href="#reportsSection">
+                        View All Reports
+                    </a>
+                </div>
             </div>
         </section>
 
-        <!-- This form is used to add new reports and edit existing reports. -->
-        <section class="form-section">
-            <h2 id="formTitle">Submit a Report</h2>
+        <!-- Shared form for adding new reports and editing existing reports. -->
+        <section id="reportFormSection" class="form-section">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">REPORT AN ITEM</p>
+                    <h2 id="formTitle">Submit a Report</h2>
+                    <p class="section-description">
+                        Enter the details below to add an item to the system.
+                    </p>
+                </div>
+            </div>
 
             <form id="itemForm">
-                <div class="form-group">
-                    <label for="itemName">Item Name</label>
-                    <input
-                        type="text"
-                        id="itemName"
-                        placeholder="Example: Black wallet"
-                        required
-                    >
-                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="itemName">Item Name</label>
+                        <input
+                            type="text"
+                            id="itemName"
+                            placeholder="Example: Black wallet"
+                            required
+                        >
+                    </div>
 
-                <div class="form-group">
-                    <label for="itemStatus">Report Status</label>
-                    <select id="itemStatus" required>
-                        <option value="Lost">Lost</option>
-                        <option value="Found">Found</option>
-                        <option value="Returned">Returned</option>
-                    </select>
-                </div>
+                    <div class="form-group">
+                        <label for="itemStatus">Report Status</label>
+                        <select id="itemStatus" required>
+                            <option value="Lost">Lost</option>
+                            <option value="Found">Found</option>
+                            <option value="Returned">Returned</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label for="itemDescription">Description</label>
-                    <textarea
-                        id="itemDescription"
-                        placeholder="Describe the item"
-                        rows="3"
-                        required
-                    ></textarea>
-                </div>
+                    <div class="form-group full-width">
+                        <label for="itemDescription">Description</label>
+                        <textarea
+                            id="itemDescription"
+                            placeholder="Describe the item, including its color or identifying details."
+                            rows="3"
+                            required
+                        ></textarea>
+                    </div>
 
-                <div class="form-group">
-                    <label for="itemLocation">Location</label>
-                    <input
-                        type="text"
-                        id="itemLocation"
-                        placeholder="Example: Library"
-                        required
-                    >
-                </div>
+                    <div class="form-group">
+                        <label for="itemLocation">Location</label>
+                        <input
+                            type="text"
+                            id="itemLocation"
+                            placeholder="Example: School library"
+                            required
+                        >
+                    </div>
 
-                <div class="form-group">
-                    <label for="reporterName">Reporter Name</label>
-                    <input
-                        type="text"
-                        id="reporterName"
-                        placeholder="Enter your name"
-                        required
-                    >
-                </div>
+                    <div class="form-group">
+                        <label for="reportDate">Report Date</label>
+                        <input type="date" id="reportDate" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="contactNumber">Contact Number</label>
-                    <input
-                        type="tel"
-                        id="contactNumber"
-                        placeholder="Example: 09123456789"
-                        required
-                    >
-                </div>
+                    <div class="form-group">
+                        <label for="reporterName">Reporter Name</label>
+                        <input
+                            type="text"
+                            id="reporterName"
+                            placeholder="Enter your name"
+                            required
+                        >
+                    </div>
 
-                <div class="form-group">
-                    <label for="reportDate">Report Date</label>
-                    <input type="date" id="reportDate" required>
+                    <div class="form-group">
+                        <label for="contactNumber">Contact Number</label>
+                        <input
+                            type="tel"
+                            id="contactNumber"
+                            placeholder="Example: 09123456789"
+                            required
+                        >
+                    </div>
                 </div>
 
                 <div class="form-actions">
                     <button type="submit" id="submitButton">Submit Report</button>
-
                     <button
                         type="button"
                         id="cancelEditButton"
@@ -124,69 +269,80 @@
             </form>
         </section>
 
-        <!-- Search, filter, and sorting controls from earlier commits. -->
-        <section class="reports-section">
-            <h2>Lost and Found Reports</h2>
+        <!-- Searchable and filterable list of reports. -->
+        <section id="reportsSection" class="reports-section">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">ITEM DIRECTORY</p>
+                    <h2>Lost and Found Reports</h2>
+                    <p class="section-description">
+                        Search reports, filter by status or date, and manage existing records.
+                    </p>
+                </div>
+            </div>
 
-            <div class="filter-grid">
-                <div class="form-group">
-                    <label for="searchInput">Search Reports</label>
-                    <input
-                        type="search"
-                        id="searchInput"
-                        placeholder="Search name, location, description..."
+            <div class="filter-panel">
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="searchInput">Search Reports</label>
+                        <input
+                            type="search"
+                            id="searchInput"
+                            placeholder="Name, location, description..."
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filterStatus">Filter by Status</label>
+                        <select id="filterStatus">
+                            <option value="All">All Statuses</option>
+                            <option value="Lost">Lost</option>
+                            <option value="Found">Found</option>
+                            <option value="Returned">Returned</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filterDate">Filter by Date</label>
+                        <select id="filterDate">
+                            <option value="all">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sortReports">Sort Reports</label>
+                        <select id="sortReports">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="name">Item Name (A–Z)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button
+                        type="button"
+                        id="resetFiltersButton"
+                        class="reset-button"
                     >
-                </div>
+                        Reset Filters
+                    </button>
 
-                <div class="form-group">
-                    <label for="filterStatus">Filter by Status</label>
-                    <select id="filterStatus">
-                        <option value="All">All Statuses</option>
-                        <option value="Lost">Lost</option>
-                        <option value="Found">Found</option>
-                        <option value="Returned">Returned</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="filterDate">Filter by Date</label>
-                    <select id="filterDate">
-                        <option value="all">All Dates</option>
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="sortReports">Sort Reports</label>
-                    <select id="sortReports">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="name">Item Name (A–Z)</option>
-                    </select>
+                    <p id="resultCount" aria-live="polite">0 reports found</p>
                 </div>
             </div>
 
-            <div class="filter-actions">
-                <button
-                    type="button"
-                    id="resetFiltersButton"
-                    class="reset-button"
-                >
-                    Reset Filters
-                </button>
-
-                <p id="resultCount" aria-live="polite">0 reports found</p>
-            </div>
-
-            <!-- JavaScript inserts report cards here. -->
+            <!-- JavaScript creates report cards inside this container. -->
             <div id="itemsContainer" class="items-container"></div>
         </section>
     </main>
 
     <footer class="page-footer">
         <p>Campus Lost and Found System</p>
+        <p>Helping campus belongings find their way home.</p>
     </footer>
 </body>
 </html>

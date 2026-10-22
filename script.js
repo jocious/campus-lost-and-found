@@ -1,13 +1,18 @@
 
 /* =========================================================
    CAMPUS LOST AND FOUND
-   Commit 4: Returned Item Tracking
+   Commit 5: Dashboard and Responsive Design
    ========================================================= */
 
-/* Keep the same storage key so earlier reports remain accessible. */
+/* IMPORTANT:
+   Keep this storage key unchanged so reports from earlier commits
+   can still be loaded from the browser's localStorage. */
 const STORAGE_KEY = "lostFoundItems";
 
-/* Form elements. */
+/* =========================================================
+   FORM ELEMENTS
+   ========================================================= */
+
 const itemForm = document.getElementById("itemForm");
 const formTitle = document.getElementById("formTitle");
 const itemName = document.getElementById("itemName");
@@ -20,24 +25,52 @@ const reportDate = document.getElementById("reportDate");
 const submitButton = document.getElementById("submitButton");
 const cancelEditButton = document.getElementById("cancelEditButton");
 
-/* Search, filter, and sorting elements. */
+/* =========================================================
+   SEARCH AND FILTER ELEMENTS
+   ========================================================= */
+
 const searchInput = document.getElementById("searchInput");
 const filterStatus = document.getElementById("filterStatus");
 const filterDate = document.getElementById("filterDate");
 const sortReports = document.getElementById("sortReports");
 const resetFiltersButton = document.getElementById("resetFiltersButton");
 
-/* Report display and summary elements. */
+/* =========================================================
+   REPORT LIST AND DASHBOARD ELEMENTS
+   ========================================================= */
+
 const itemsContainer = document.getElementById("itemsContainer");
 const resultCount = document.getElementById("resultCount");
+
+const totalCount = document.getElementById("totalCount");
 const lostCount = document.getElementById("lostCount");
 const foundCount = document.getElementById("foundCount");
 const returnedCount = document.getElementById("returnedCount");
 
-/* null means the form is not currently editing a report. */
+const overviewTotal = document.getElementById("overviewTotal");
+
+const lostPercentage = document.getElementById("lostPercentage");
+const foundPercentage = document.getElementById("foundPercentage");
+const returnedPercentage = document.getElementById("returnedPercentage");
+
+const lostProgress = document.getElementById("lostProgress");
+const foundProgress = document.getElementById("foundProgress");
+const returnedProgress = document.getElementById("returnedProgress");
+
+const lostProgressFill = document.getElementById("lostProgressFill");
+const foundProgressFill = document.getElementById("foundProgressFill");
+const returnedProgressFill = document.getElementById("returnedProgressFill");
+
+/* null means the form is adding a new report.
+   Otherwise, it contains the ID of the report being edited. */
 let editingId = null;
 
-/* Loads the existing reports from localStorage. */
+/* =========================================================
+   LOAD AND SAVE REPORTS
+   ========================================================= */
+
+/* Loads saved reports from localStorage.
+   Older reports without a status are treated as Lost when displayed. */
 function loadItems() {
     try {
         const savedItems = localStorage.getItem(STORAGE_KEY);
@@ -48,7 +81,12 @@ function loadItems() {
 
         const parsedItems = JSON.parse(savedItems);
 
-        return Array.isArray(parsedItems) ? parsedItems : [];
+        if (!Array.isArray(parsedItems)) {
+            alert("The saved report data is not in the expected format.");
+            return [];
+        }
+
+        return parsedItems;
     } catch (error) {
         console.error("Could not load saved reports:", error);
         alert("Saved reports could not be read. Your stored data has not been overwritten.");
@@ -56,20 +94,10 @@ function loadItems() {
     }
 }
 
-/* Stores all loaded reports in this array. */
+/* Holds the reports currently loaded into the application. */
 let items = loadItems();
 
-/* Returns today's local date as YYYY-MM-DD. */
-function getTodayDate() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-}
-
-/* Saves reports without changing the existing storage key. */
+/* Saves all reports using the same storage key. */
 function saveItems() {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
@@ -79,6 +107,22 @@ function saveItems() {
         alert("The reports could not be saved. Check your browser storage.");
         return false;
     }
+}
+
+/* =========================================================
+   DATE HELPERS
+   ========================================================= */
+
+/* Returns today's date in YYYY-MM-DD format.
+   This format is used by HTML date inputs. */
+function getTodayDate() {
+    const today = new Date();
+
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
 }
 
 /* Converts a valid YYYY-MM-DD string into a Date object. */
@@ -96,9 +140,10 @@ function parseReportDate(dateString) {
     const year = Number(parts[0]);
     const month = Number(parts[1]);
     const day = Number(parts[2]);
+
     const date = new Date(year, month - 1, day);
 
-    /* Rejects impossible calendar dates such as February 30. */
+    /* Checks that the supplied values form a real calendar date. */
     if (
         date.getFullYear() !== year ||
         date.getMonth() !== month - 1 ||
@@ -110,33 +155,42 @@ function parseReportDate(dateString) {
     return date;
 }
 
-/* Finds the Monday at the start of this week. */
+/* Returns Monday at the beginning of the current week. */
 function getStartOfThisWeek() {
     const today = new Date();
 
     today.setHours(0, 0, 0, 0);
 
+    /* JavaScript uses Sunday = 0, so this calculates days since Monday. */
     const daysSinceMonday = (today.getDay() + 6) % 7;
+
     today.setDate(today.getDate() - daysSinceMonday);
 
     return today;
 }
 
-/* Searches the item's name, status, location, description, reporter, and contact. */
+/* =========================================================
+   SEARCH, FILTERING, AND SORTING
+   ========================================================= */
+
+/* Searches all the useful text fields of a report. */
 function matchesSearch(item, searchText) {
     const searchableText = [
         item.name,
-        item.status,
+        item.status || "Lost",
         item.location,
         item.description,
         item.reporter,
         item.contact
-    ].filter(Boolean).join(" ").toLowerCase();
+    ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
 
     return searchableText.includes(searchText);
 }
 
-/* Checks whether a report belongs to the selected date range. */
+/* Checks whether a report matches the selected date range. */
 function matchesDateFilter(item, selectedDate) {
     if (selectedDate === "all") {
         return true;
@@ -144,15 +198,16 @@ function matchesDateFilter(item, selectedDate) {
 
     const itemDate = parseReportDate(item.reportDate);
 
-    /* Old records without a date are still available under All Dates. */
+    /* Older reports without dates remain visible under All Dates. */
     if (!itemDate) {
         return false;
     }
 
-    const today = parseReportDate(getTodayDate());
+    const todayString = getTodayDate();
+    const today = parseReportDate(todayString);
 
     if (selectedDate === "today") {
-        return item.reportDate === getTodayDate();
+        return item.reportDate === todayString;
     }
 
     if (selectedDate === "week") {
@@ -195,17 +250,16 @@ function sortFilteredItems(filteredItems) {
     });
 }
 
-/* Applies all search and filter settings together. */
+/* Combines search, status filtering, date filtering, and sorting. */
 function getFilteredItems() {
     const searchText = searchInput.value.trim().toLowerCase();
     const selectedStatus = filterStatus.value;
     const selectedDate = filterDate.value;
 
     const filteredItems = items.filter(function (item) {
-        const matchesText = matchesSearch(item, searchText);
-
-        /* Treat older records without a status as Lost for compatibility. */
         const currentStatus = item.status || "Lost";
+
+        const matchesText = matchesSearch(item, searchText);
 
         const matchesStatus =
             selectedStatus === "All" || currentStatus === selectedStatus;
@@ -218,15 +272,19 @@ function getFilteredItems() {
     return sortFilteredItems(filteredItems);
 }
 
-/* Displays the totals for each report status.
-   These totals use every saved report, not only filtered results. */
-function updateSummary() {
+/* =========================================================
+   DASHBOARD SUMMARY AND PROGRESS BARS
+   ========================================================= */
+
+/* Calculates the number and percentage of reports in each status.
+   The dashboard uses ALL saved reports, not just filtered results. */
+function updateDashboard() {
     let lost = 0;
     let found = 0;
     let returned = 0;
 
     items.forEach(function (item) {
-        /* Older reports without a status are counted as Lost. */
+        /* Treat old records without a status as Lost. */
         const status = item.status || "Lost";
 
         if (status === "Lost") {
@@ -238,17 +296,51 @@ function updateSummary() {
         }
     });
 
+    const total = items.length;
+
+    /* Updates the four dashboard summary numbers. */
+    totalCount.textContent = total;
     lostCount.textContent = lost;
     foundCount.textContent = found;
     returnedCount.textContent = returned;
+
+    overviewTotal.textContent =
+        total + (total === 1 ? " report" : " reports");
+
+    /* Avoids division by zero when there are no reports. */
+    const lostPercent = total === 0 ? 0 : Math.round((lost / total) * 100);
+    const foundPercent = total === 0 ? 0 : Math.round((found / total) * 100);
+    const returnedPercent =
+        total === 0 ? 0 : Math.round((returned / total) * 100);
+
+    /* Displays percentages next to each progress bar. */
+    lostPercentage.textContent = lostPercent + "%";
+    foundPercentage.textContent = foundPercent + "%";
+    returnedPercentage.textContent = returnedPercent + "%";
+
+    /* Changes the width of each colored progress bar. */
+    lostProgressFill.style.width = lostPercent + "%";
+    foundProgressFill.style.width = foundPercent + "%";
+    returnedProgressFill.style.width = returnedPercent + "%";
+
+    /* Keeps progress bar accessibility values up to date. */
+    lostProgress.setAttribute("aria-valuenow", lostPercent);
+    foundProgress.setAttribute("aria-valuenow", foundPercent);
+    returnedProgress.setAttribute("aria-valuenow", returnedPercent);
 }
 
-/* Adds a label and its value safely to a report card. */
+/* =========================================================
+   CREATE REPORT CARDS
+   ========================================================= */
+
+/* Adds a text line safely to a report card.
+   textContent and createTextNode prevent report text from being treated as HTML. */
 function addTextLine(parent, label, value) {
     const paragraph = document.createElement("p");
     const labelElement = document.createElement("strong");
 
     labelElement.textContent = label + ": ";
+
     paragraph.appendChild(labelElement);
     paragraph.appendChild(
         document.createTextNode(value || "Not provided")
@@ -257,29 +349,32 @@ function addTextLine(parent, label, value) {
     parent.appendChild(paragraph);
 }
 
-/* Creates a report card and its available action buttons. */
+/* Creates one report card with Edit, Return, and Delete actions. */
 function createReportCard(item) {
     const card = document.createElement("article");
     card.className = "item-card";
 
+    /* Displays the item name. */
     const heading = document.createElement("h3");
     heading.textContent = item.name || "Unnamed Item";
     card.appendChild(heading);
 
-    const status = item.status || "Lost";
+    /* Older records without a status are treated as Lost. */
+    const currentStatus = item.status || "Lost";
 
+    /* Displays the status with its matching CSS class. */
     const statusLine = document.createElement("p");
     const statusLabel = document.createElement("strong");
     const statusValue = document.createElement("span");
 
     statusLabel.textContent = "Status: ";
-    statusValue.textContent = status;
+    statusValue.textContent = currentStatus;
 
-    if (status === "Lost") {
+    if (currentStatus === "Lost") {
         statusValue.className = "status-lost";
-    } else if (status === "Found") {
+    } else if (currentStatus === "Found") {
         statusValue.className = "status-found";
-    } else if (status === "Returned") {
+    } else if (currentStatus === "Returned") {
         statusValue.className = "status-returned";
     }
 
@@ -287,17 +382,21 @@ function createReportCard(item) {
     statusLine.appendChild(statusValue);
     card.appendChild(statusLine);
 
+    /* Displays the remaining report details. */
     addTextLine(card, "Description", item.description);
     addTextLine(card, "Location", item.location);
     addTextLine(card, "Reporter", item.reporter);
     addTextLine(card, "Contact", item.contact);
     addTextLine(card, "Report Date", item.reportDate || "Not recorded");
 
+    /* Creates the container for action buttons. */
     const actionContainer = document.createElement("div");
     actionContainer.className = "item-actions";
 
-    /* Edit button: fills the form with this report's details. */
+    /* EDIT BUTTON:
+       Opens the selected report in the form. */
     const editButton = document.createElement("button");
+
     editButton.type = "button";
     editButton.className = "edit-button";
     editButton.textContent = "Edit";
@@ -308,9 +407,11 @@ function createReportCard(item) {
 
     actionContainer.appendChild(editButton);
 
-    /* Only reports not yet returned can be marked as Returned. */
-    if (status !== "Returned") {
+    /* RETURN BUTTON:
+       Only displays when the item has not already been returned. */
+    if (currentStatus !== "Returned") {
         const returnButton = document.createElement("button");
+
         returnButton.type = "button";
         returnButton.className = "return-button";
         returnButton.textContent = "Mark as Returned";
@@ -322,8 +423,10 @@ function createReportCard(item) {
         actionContainer.appendChild(returnButton);
     }
 
-    /* Delete button: removes the selected report after confirmation. */
+    /* DELETE BUTTON:
+       Removes the selected report after confirmation. */
     const deleteButton = document.createElement("button");
+
     deleteButton.type = "button";
     deleteButton.className = "delete-button";
     deleteButton.textContent = "Delete";
@@ -338,20 +441,28 @@ function createReportCard(item) {
     return card;
 }
 
-/* Updates the report list and the number of matching results. */
+/* =========================================================
+   DISPLAY REPORTS
+   ========================================================= */
+
+/* Rebuilds the report list and refreshes the dashboard. */
 function displayItems() {
     const filteredItems = getFilteredItems();
 
+    /* Removes the previously displayed cards. */
     itemsContainer.replaceChildren();
 
+    /* Shows how many reports match the active filters. */
     resultCount.textContent =
         filteredItems.length +
         (filteredItems.length === 1 ? " report found" : " reports found");
 
     if (filteredItems.length === 0) {
         const emptyMessage = document.createElement("p");
+
         emptyMessage.className = "empty-message";
         emptyMessage.textContent = "No reports match your search or filters.";
+
         itemsContainer.appendChild(emptyMessage);
     } else {
         filteredItems.forEach(function (item) {
@@ -359,23 +470,28 @@ function displayItems() {
         });
     }
 
-    /* Summary counts always reflect the full saved report list. */
-    updateSummary();
+    /* The dashboard always reflects all saved reports. */
+    updateDashboard();
 }
 
-/* Switches the form back to Add New Report mode. */
+/* =========================================================
+   ADD AND EDIT REPORTS
+   ========================================================= */
+
+/* Resets the form and exits edit mode. */
 function resetForm() {
     editingId = null;
 
     itemForm.reset();
 
     reportDate.value = getTodayDate();
+
     formTitle.textContent = "Submit a Report";
     submitButton.textContent = "Submit Report";
     cancelEditButton.hidden = true;
 }
 
-/* Loads an existing report into the form for editing. */
+/* Loads a selected report into the form. */
 function startEditing(id) {
     const itemToEdit = items.find(function (item) {
         return item.id === id;
@@ -386,6 +502,7 @@ function startEditing(id) {
         return;
     }
 
+    /* Stores the ID so the submit handler knows which record to update. */
     editingId = id;
 
     itemName.value = itemToEdit.name || "";
@@ -400,14 +517,20 @@ function startEditing(id) {
     submitButton.textContent = "Save Changes";
     cancelEditButton.hidden = false;
 
-    itemForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    /* Brings the form into view. */
+    document.getElementById("reportFormSection").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+
     itemName.focus();
 }
 
-/* Adds a new report or updates an existing report. */
+/* Handles both new reports and updates to existing reports. */
 itemForm.addEventListener("submit", function (event) {
     event.preventDefault();
 
+    /* Trims unnecessary spaces from text inputs. */
     const name = itemName.value.trim();
     const status = itemStatus.value;
     const description = itemDescription.value.trim();
@@ -416,11 +539,13 @@ itemForm.addEventListener("submit", function (event) {
     const contact = contactNumber.value.trim();
     const date = reportDate.value;
 
+    /* Checks that every required field has a value. */
     if (!name || !description || !location || !reporter || !contact || !date) {
         alert("Please complete all fields before saving.");
         return;
     }
 
+    /* Allows common phone number characters. */
     const contactPattern = /^[0-9+() -]{7,20}$/;
 
     if (!contactPattern.test(contact)) {
@@ -428,11 +553,13 @@ itemForm.addEventListener("submit", function (event) {
         return;
     }
 
+    /* Prevents a report date later than today. */
     if (date > getTodayDate()) {
         alert("The report date cannot be in the future.");
         return;
     }
 
+    /* Collects the fields that the user can edit. */
     const reportData = {
         name: name,
         status: status,
@@ -444,7 +571,8 @@ itemForm.addEventListener("submit", function (event) {
     };
 
     if (editingId !== null) {
-        /* EDIT MODE: update the matching report without adding a duplicate. */
+        /* EDIT MODE:
+           Updates the existing report rather than adding a duplicate. */
         const itemIndex = items.findIndex(function (item) {
             return item.id === editingId;
         });
@@ -457,6 +585,7 @@ itemForm.addEventListener("submit", function (event) {
 
         const previousItem = items[itemIndex];
 
+        /* Preserves the original ID and any other existing properties. */
         const updatedItem = {
             ...previousItem,
             ...reportData,
@@ -472,9 +601,19 @@ itemForm.addEventListener("submit", function (event) {
 
         alert("Report updated successfully.");
     } else {
-        /* ADD MODE: create a new report with its own ID. */
+        /* ADD MODE:
+           Creates a new report with a unique ID. */
+        let newId = Date.now();
+
+        /* Avoids an ID collision if two reports are created very quickly. */
+        while (items.some(function (item) {
+            return item.id === newId;
+        })) {
+            newId++;
+        }
+
         const newItem = {
-            id: Date.now(),
+            id: newId,
             ...reportData
         };
 
@@ -492,7 +631,16 @@ itemForm.addEventListener("submit", function (event) {
     displayItems();
 });
 
-/* Marks a report as Returned without creating another report. */
+/* Cancels edit mode without saving unsaved form changes. */
+cancelEditButton.addEventListener("click", function () {
+    resetForm();
+});
+
+/* =========================================================
+   RETURNED ITEM TRACKING
+   ========================================================= */
+
+/* Changes a report's status to Returned without creating a new record. */
 function markAsReturned(id) {
     const itemIndex = items.findIndex(function (item) {
         return item.id === id;
@@ -518,21 +666,20 @@ function markAsReturned(id) {
         return;
     }
 
-    /* Keep the original record and ID; only change its status. */
     const previousItem = currentItem;
 
+    /* Preserves the existing report and changes only its status. */
     items[itemIndex] = {
         ...currentItem,
         status: "Returned"
     };
 
     if (!saveItems()) {
-        /* Restore the previous report if saving fails. */
         items[itemIndex] = previousItem;
         return;
     }
 
-    /* If this report is currently being edited, update the form too. */
+    /* If the same report is being edited, reflect the status in the form. */
     if (editingId === id) {
         itemStatus.value = "Returned";
     }
@@ -540,12 +687,11 @@ function markAsReturned(id) {
     displayItems();
 }
 
-/* Cancels editing without saving unsaved form changes. */
-cancelEditButton.addEventListener("click", function () {
-    resetForm();
-});
+/* =========================================================
+   DELETE REPORTS
+   ========================================================= */
 
-/* Deletes a report after confirmation. */
+/* Deletes the selected report only after user confirmation. */
 function deleteItem(id) {
     const itemToDelete = items.find(function (item) {
         return item.id === id;
@@ -576,6 +722,7 @@ function deleteItem(id) {
         return;
     }
 
+    /* Prevents the form from editing a report that no longer exists. */
     if (editingId === id) {
         resetForm();
     }
@@ -583,7 +730,11 @@ function deleteItem(id) {
     displayItems();
 }
 
-/* Restores the search and filter controls to their default values. */
+/* =========================================================
+   RESET SEARCH AND FILTERS
+   ========================================================= */
+
+/* Restores the default search, filter, and sort settings. */
 function resetFilters() {
     searchInput.value = "";
     filterStatus.value = "All";
@@ -593,13 +744,17 @@ function resetFilters() {
     displayItems();
 }
 
-/* Updates the report list whenever search or filters change. */
+/* =========================================================
+   EVENT LISTENERS AND INITIAL DISPLAY
+   ========================================================= */
+
+/* Refreshes the list whenever search or filter settings change. */
 searchInput.addEventListener("input", displayItems);
 filterStatus.addEventListener("change", displayItems);
 filterDate.addEventListener("change", displayItems);
 sortReports.addEventListener("change", displayItems);
 resetFiltersButton.addEventListener("click", resetFilters);
 
-/* Sets the default date and displays saved reports when the page loads. */
+/* Sets today's date in the form and shows the saved reports. */
 reportDate.value = getTodayDate();
 displayItems();
