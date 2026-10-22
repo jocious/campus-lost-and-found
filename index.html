@@ -1,43 +1,54 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Sets the character encoding for the webpage. -->
     <meta charset="UTF-8">
+
+    <!-- Makes the page fit the screen size of phones and computers. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Campus Lost & Found</title>
+    <!-- Sets the browser tab title. -->
+    <title>Campus Lost &amp; Found</title>
 
+    <!-- Connects this page to the external CSS file. -->
     <link rel="stylesheet" href="style.css">
-</head>
 
+    <!-- Loads JavaScript after the HTML has been parsed. -->
+    <script src="script.js" defer></script>
+</head>
 <body>
 
+    <!-- Website heading and introduction. -->
     <header>
-        <h1>Campus Lost & Found</h1>
+        <h1>Campus Lost &amp; Found</h1>
         <p>Help students find their lost belongings.</p>
     </header>
 
     <main>
 
-        <section class="search-section">
-
+        <!-- Search and filter controls for existing reports. -->
+        <section class="search-section" aria-label="Search and filter reports">
             <input
-                type="text"
+                type="search"
                 id="searchInput"
-                placeholder="Search for an item..."
+                placeholder="Search by item name or location..."
+                aria-label="Search by item name or location"
             >
 
-            <select id="filterStatus">
+            <select id="filterStatus" aria-label="Filter reports by status">
                 <option value="all">All Items</option>
                 <option value="Lost">Lost</option>
                 <option value="Found">Found</option>
             </select>
-
         </section>
 
-
+        <!-- Form for reporting a lost or found item. -->
         <section class="form-section">
-
             <h2>Report an Item</h2>
+            <p class="section-description">
+                Provide accurate information to help reunite items with their owners.
+            </p>
 
             <form id="itemForm">
 
@@ -46,6 +57,7 @@
                     type="text"
                     id="itemName"
                     placeholder="Example: Black Wallet"
+                    maxlength="100"
                     required
                 >
 
@@ -58,7 +70,8 @@
                 <label for="itemDescription">Description</label>
                 <textarea
                     id="itemDescription"
-                    placeholder="Describe the item..."
+                    placeholder="Describe the item, including its color or identifying features..."
+                    maxlength="1000"
                     required
                 ></textarea>
 
@@ -67,6 +80,7 @@
                     type="text"
                     id="itemLocation"
                     placeholder="Example: Library"
+                    maxlength="150"
                     required
                 >
 
@@ -75,45 +89,51 @@
                     type="text"
                     id="reporterName"
                     placeholder="Example: Juan Dela Cruz"
+                    maxlength="100"
                     required
                 >
 
                 <label for="contactNumber">Contact Number</label>
                 <input
-                    type="text"
+                    type="tel"
                     id="contactNumber"
                     placeholder="Example: 09123456789"
+                    maxlength="20"
+                    pattern="[0-9+() -]{7,20}"
+                    title="Enter a valid contact number using digits and optional +, spaces, parentheses, or hyphens."
                     required
                 >
 
-                <button type="submit">
+                <!-- The report date is filled with today's date by JavaScript. -->
+                <label for="reportDate">Date Reported</label>
+                <input
+                    type="date"
+                    id="reportDate"
+                    required
+                >
+
+                <button type="submit" id="submitButton">
                     Add Report
                 </button>
 
             </form>
-
         </section>
 
-
+        <!-- Displays the reports created by students. -->
         <section class="items-section">
-
             <h2>Reported Items</h2>
 
-            <div id="itemsContainer">
-                <!-- Items will appear here -->
+            <div id="itemsContainer" aria-live="polite">
+                <p class="no-items">Loading reports...</p>
             </div>
-
         </section>
 
     </main>
 
-
+    <!-- Website footer. -->
     <footer>
-        <p>Campus Lost & Found © 2026</p>
+        <p>Campus Lost &amp; Found &copy; 2026</p>
     </footer>
-
-
-    <script src="script.js"></script>
 
 </body>
 </html>

@@ -1,15 +1,20 @@
+
+/* Applies consistent sizing to all elements. */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+/* Sets the overall page font and background. */
 body {
     font-family: Arial, sans-serif;
     background-color: lightgray;
     color: black;
+    line-height: 1.5;
 }
 
+/* Styles the main page heading. */
 header {
     background-color: darkblue;
     color: white;
@@ -21,12 +26,14 @@ header h1 {
     margin-bottom: 10px;
 }
 
+/* Centers the main content and limits its maximum width. */
 main {
     width: 90%;
     max-width: 900px;
     margin: 30px auto;
 }
 
+/* Places search and filter controls beside each other. */
 .search-section {
     display: flex;
     gap: 10px;
@@ -42,8 +49,10 @@ main {
 
 .search-section input {
     flex: 1;
+    min-width: 0;
 }
 
+/* Styles the report form and reported-items section. */
 .form-section,
 .items-section {
     background-color: white;
@@ -54,9 +63,16 @@ main {
 }
 
 h2 {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
+.section-description {
+    margin-bottom: 12px;
+    color: dimgray;
+    font-size: 14px;
+}
+
+/* Places form labels and controls in a vertical layout. */
 form {
     display: flex;
     flex-direction: column;
@@ -68,12 +84,18 @@ label {
     font-weight: bold;
 }
 
+/* Uses consistent styling for text fields, dropdowns, and text areas. */
 input,
 select,
 textarea {
+    width: 100%;
+    min-width: 0;
     padding: 12px;
     border: 1px solid gray;
     border-radius: 5px;
+    background-color: white;
+    color: black;
+    font-family: inherit;
     font-size: 15px;
 }
 
@@ -82,6 +104,16 @@ textarea {
     resize: vertical;
 }
 
+/* Highlights the input the user is currently using. */
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid royalblue;
+    outline-offset: 2px;
+    border-color: darkblue;
+}
+
+/* Styles the main form button. */
 button {
     margin-top: 20px;
     padding: 12px;
@@ -91,31 +123,53 @@ button {
     color: white;
     cursor: pointer;
     font-size: 16px;
+    font-weight: bold;
 }
 
 button:hover {
     background-color: blue;
 }
 
+button:focus-visible {
+    outline: 2px solid royalblue;
+    outline-offset: 3px;
+}
+
+/* Styles each individual item report. */
 .item-card {
+    overflow-wrap: anywhere;
     border: 1px solid lightgray;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 15px;
+    background-color: white;
 }
 
 .item-card h3 {
     margin-bottom: 10px;
+    color: darkblue;
+    font-size: 20px;
 }
 
 .item-card p {
     margin-bottom: 7px;
 }
 
+/* Makes the Lost or Found status stand out. */
 .status {
+    display: inline-block;
     font-weight: bold;
 }
 
+.status-lost {
+    color: darkred;
+}
+
+.status-found {
+    color: darkgreen;
+}
+
+/* Styles the delete button. */
 .delete-button {
     background-color: darkred;
     margin-top: 10px;
@@ -125,12 +179,14 @@ button:hover {
     background-color: red;
 }
 
+/* Styles the message displayed when there are no matching reports. */
 .no-items {
     text-align: center;
     padding: 20px;
     color: gray;
 }
 
+/* Styles the bottom section of the webpage. */
 footer {
     text-align: center;
     padding: 20px;
@@ -138,13 +194,50 @@ footer {
     color: white;
 }
 
+/* Adjusts the layout for tablets and smaller screens. */
 @media (max-width: 600px) {
+    header {
+        padding: 24px 15px;
+    }
+
+    header h1 {
+        font-size: 26px;
+    }
+
+    main {
+        width: 95%;
+        margin: 20px auto;
+    }
 
     .search-section {
         flex-direction: column;
     }
 
-    main {
-        width: 95%;
+    .form-section,
+    .items-section {
+        padding: 18px;
+    }
+
+    .item-card {
+        padding: 15px;
+    }
+}
+
+/* Makes controls easier to use on very narrow screens. */
+@media (max-width: 360px) {
+    header h1 {
+        font-size: 22px;
+    }
+
+    .form-section,
+    .items-section {
+        padding: 14px;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+        font-size: 14px;
     }
 }
