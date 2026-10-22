@@ -1,12 +1,14 @@
 
-/* Applies consistent sizing to all elements. */
+/* =========================================================
+   GENERAL PAGE STYLING
+   ========================================================= */
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-/* Sets the overall page font and background. */
 body {
     font-family: Arial, sans-serif;
     background-color: lightgray;
@@ -14,7 +16,10 @@ body {
     line-height: 1.5;
 }
 
-/* Styles the main page heading. */
+/* =========================================================
+   HEADER AND MAIN CONTENT
+   ========================================================= */
+
 header {
     background-color: darkblue;
     color: white;
@@ -26,33 +31,27 @@ header h1 {
     margin-bottom: 10px;
 }
 
-/* Centers the main content and limits its maximum width. */
 main {
     width: 90%;
-    max-width: 900px;
+    max-width: 1000px;
     margin: 30px auto;
 }
 
-/* Places search and filter controls beside each other. */
-.search-section {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+h2 {
+    margin-bottom: 12px;
 }
 
-.search-section input,
-.search-section select {
-    padding: 12px;
-    border: 1px solid gray;
-    border-radius: 5px;
+.section-description {
+    margin-bottom: 16px;
+    color: dimgray;
+    font-size: 14px;
 }
 
-.search-section input {
-    flex: 1;
-    min-width: 0;
-}
+/* =========================================================
+   SEARCH AND FILTER PANEL
+   ========================================================= */
 
-/* Styles the report form and reported-items section. */
+.search-panel,
 .form-section,
 .items-section {
     background-color: white;
@@ -62,32 +61,31 @@ main {
     box-shadow: 0 2px 5px gray;
 }
 
-h2 {
-    margin-bottom: 12px;
+/* Arranges the search controls in a responsive grid. */
+.search-section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
 }
 
-.section-description {
-    margin-bottom: 12px;
-    color: dimgray;
-    font-size: 14px;
-}
-
-/* Places form labels and controls in a vertical layout. */
-form {
+.filter-group {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    gap: 6px;
 }
 
-label {
-    margin-top: 12px;
-    margin-bottom: 5px;
+.filter-group label,
+form label {
     font-weight: bold;
 }
 
-/* Uses consistent styling for text fields, dropdowns, and text areas. */
-input,
-select,
-textarea {
+.search-group {
+    grid-column: 1 / -1;
+}
+
+.search-section input,
+.search-section select {
     width: 100%;
     min-width: 0;
     padding: 12px;
@@ -99,12 +97,64 @@ textarea {
     font-size: 15px;
 }
 
-textarea {
+/* Places the result count and reset button on one row. */
+.search-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.result-count {
+    color: dimgray;
+    font-size: 14px;
+}
+
+.reset-button {
+    margin-top: 0;
+    background-color: slategray;
+}
+
+.reset-button:hover {
+    background-color: darkslategray;
+}
+
+/* =========================================================
+   REPORT FORM
+   ========================================================= */
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+form label {
+    margin-top: 12px;
+    margin-bottom: 5px;
+}
+
+form input,
+form select,
+form textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    background-color: white;
+    color: black;
+    font-family: inherit;
+    font-size: 15px;
+}
+
+form textarea {
     min-height: 100px;
     resize: vertical;
 }
 
-/* Highlights the input the user is currently using. */
+/* Makes the active input easy to identify. */
 input:focus,
 select:focus,
 textarea:focus {
@@ -113,7 +163,10 @@ textarea:focus {
     border-color: darkblue;
 }
 
-/* Styles the main form button. */
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
 button {
     margin-top: 20px;
     padding: 12px;
@@ -122,6 +175,7 @@ button {
     background-color: darkblue;
     color: white;
     cursor: pointer;
+    font-family: inherit;
     font-size: 16px;
     font-weight: bold;
 }
@@ -135,10 +189,13 @@ button:focus-visible {
     outline-offset: 3px;
 }
 
-/* Styles each individual item report. */
+/* =========================================================
+   REPORTED ITEM CARDS
+   ========================================================= */
+
 .item-card {
     overflow-wrap: anywhere;
-    border: 1px solid lightgray;
+    border: 1px solid silver;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 15px;
@@ -155,7 +212,7 @@ button:focus-visible {
     margin-bottom: 7px;
 }
 
-/* Makes the Lost or Found status stand out. */
+/* Different colors make the report status easy to recognize. */
 .status {
     display: inline-block;
     font-weight: bold;
@@ -169,7 +226,7 @@ button:focus-visible {
     color: darkgreen;
 }
 
-/* Styles the delete button. */
+/* Delete button styling. */
 .delete-button {
     background-color: darkred;
     margin-top: 10px;
@@ -179,14 +236,17 @@ button:focus-visible {
     background-color: red;
 }
 
-/* Styles the message displayed when there are no matching reports. */
+/* Message shown when the search has no matching results. */
 .no-items {
     text-align: center;
     padding: 20px;
     color: gray;
 }
 
-/* Styles the bottom section of the webpage. */
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
 footer {
     text-align: center;
     padding: 20px;
@@ -194,14 +254,35 @@ footer {
     color: white;
 }
 
-/* Adjusts the layout for tablets and smaller screens. */
-@media (max-width: 600px) {
+/* =========================================================
+   TABLET LAYOUT
+   ========================================================= */
+
+@media (max-width: 700px) {
+    main {
+        width: 95%;
+    }
+
+    .search-section {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .search-group {
+        grid-column: auto;
+    }
+}
+
+/* =========================================================
+   MOBILE LAYOUT
+   ========================================================= */
+
+@media (max-width: 480px) {
     header {
-        padding: 24px 15px;
+        padding: 24px 14px;
     }
 
     header h1 {
-        font-size: 26px;
+        font-size: 25px;
     }
 
     main {
@@ -209,35 +290,30 @@ footer {
         margin: 20px auto;
     }
 
-    .search-section {
+    .search-panel,
+    .form-section,
+    .items-section {
+        padding: 17px;
+    }
+
+    .search-actions {
+        align-items: stretch;
         flex-direction: column;
     }
 
-    .form-section,
-    .items-section {
-        padding: 18px;
+    .reset-button {
+        width: 100%;
     }
 
     .item-card {
         padding: 15px;
     }
-}
 
-/* Makes controls easier to use on very narrow screens. */
-@media (max-width: 360px) {
-    header h1 {
-        font-size: 22px;
-    }
-
-    .form-section,
-    .items-section {
-        padding: 14px;
-    }
-
-    input,
-    select,
-    textarea,
-    button {
+    form input,
+    form select,
+    form textarea,
+    .search-section input,
+    .search-section select {
         font-size: 14px;
     }
 }

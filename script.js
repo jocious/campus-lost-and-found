@@ -1,28 +1,31 @@
 
 // =========================================================
 // CAMPUS LOST & FOUND
-// COMMIT 1: IMPROVE LOST AND FOUND REPORTS
+// COMMIT 2: ADVANCED SEARCH AND FILTERS
 // =========================================================
 
-
-// Loads saved reports from the browser's localStorage.
-// The existing key is preserved so previously saved reports remain available.
+// Load existing reports from localStorage.
+// Keep this key unchanged to preserve previously saved reports.
 let items = JSON.parse(localStorage.getItem("lostFoundItems")) || [];
 
 
-// Gets the HTML elements used by the application.
+// Get the HTML elements used by the application.
 const itemForm = document.getElementById("itemForm");
 const itemsContainer = document.getElementById("itemsContainer");
 const searchInput = document.getElementById("searchInput");
 const filterStatus = document.getElementById("filterStatus");
+const filterDate = document.getElementById("filterDate");
+const sortReports = document.getElementById("sortReports");
+const resetFiltersButton = document.getElementById("resetFiltersButton");
+const resultCount = document.getElementById("resultCount");
 const reportDateInput = document.getElementById("reportDate");
 
 
 // =========================================================
-// DATE HELPER
+// DATE HELPERS
 // =========================================================
 
-// Returns today's date in YYYY-MM-DD format using the computer's local time.
+// Returns today's date in YYYY-MM-DD format using local time.
 function getTodayDate() {
     const today = new Date();
 
@@ -33,15 +36,196 @@ function getTodayDate() {
     return `${year}-${month}-${day}`;
 }
 
+// Converts a date string into a Date object at local midday.
+// Midday helps avoid date-boundary issues caused by time zones.
+function parseReportDate(dateString) {
+    if (!dateString) {
+        return null;
+    }
+
+    const date = new Date(`${dateString}T12:00:00`);
+
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    return date;
+}
+
+// Returns the beginning of the current week.
+// In this project, the week begins on Monday.
+function getStartOfThisWeek() {
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    const dayOfWeek = today.getDay();
+
+    // Sunday is 0, Monday is 1, and so on.
+    // This calculation moves the date back to Monday.
+    const daysSinceMonday = (dayOfWeek + 6) % 7;
+
+    today.setDate(today.getDate() - daysSinceMonday);
+
+    return today;
+}
+
 
 // =========================================================
 // SAVE REPORTS
 // =========================================================
 
-// Saves all reports as JSON text in localStorage.
-// JSON.stringify converts the JavaScript array into text for storage.
+// Saves the full report array to localStorage.
 function saveItems() {
     localStorage.setItem("lostFoundItems", JSON.stringify(items));
+}
+
+
+// =========================================================
+// SEARCH MATCHING
+// =========================================================
+
+// Checks whether a report matches the user's search text.
+// Searches across the name, location, description, reporter, and contact.
+function matchesSearch(item, searchText) {
+    const searchableFields = [
+        item.name,
+        item.location,
+        item.description,
+        item.reporter,
+        item.contact
+    ];
+
+    return searchableFields.some(function(value) {
+        return String(value || "")
+            .toLowerCase()
+            .includes(searchText);
+    });
+}
+
+
+// =========================================================
+// DATE FILTERING
+// =========================================================
+
+// Checks whether a report belongs to the selected date range.
+function matchesDateFilter(item, selectedDate) {
+    // All Dates includes older reports that have no recorded date.
+    if (selectedDate === "all") {
+        return true;
+    }
+
+    const reportDate = parseReportDate(item.reportDate);
+
+    // A report without a valid date cannot match a specific date range.
+    if (!reportDate) {
+        return false;
+    }
+
+    const todayString = getTodayDate();
+
+    // Compare date strings for the Today filter.
+    if (selectedDate === "today") {
+        return item.reportDate === todayString;
+    }
+
+    if (selectedDate === "week") {
+        const startOfWeek = getStartOfThisWeek();
+        const startOfNextWeek = new Date(startOfWeek);
+
+        startOfNextWeek.setDate(startOfNextWeek.getDate() + 7);
+
+        // Include this Monday through Sunday.
+        return (
+            reportDate >= startOfWeek &&
+            reportDate < startOfNextWeek
+        );
+    }
+
+    if (selectedDate === "month") {
+        const today = new Date();
+
+        return (
+            reportDate.getFullYear() === today.getFullYear() &&
+            reportDate.getMonth() === today.getMonth()
+        );
+    }
+
+    return true;
+}
+
+
+// =========================================================
+// SORTING
+// =========================================================
+
+// Returns a sorted copy of the matching reports.
+// The original items array is not rearranged.
+function sortFilteredItems(filteredItems) {
+    const sortChoice = sortReports.value;
+
+    return filteredItems.sort(function(firstItem, secondItem) {
+        if (sortChoice === "name") {
+            // Sort names alphabetically without case sensitivity.
+            return String(firstItem.name || "").localeCompare(
+                String(secondItem.name || ""),
+                undefined,
+                { sensitivity: "base" }
+            );
+        }
+
+        const firstDate = String(firstItem.reportDate || "");
+        const secondDate = String(secondItem.reportDate || "");
+
+        if (sortChoice === "oldest") {
+            // Oldest dated reports appear first.
+            const dateComparison = firstDate.localeCompare(secondDate);
+
+            if (dateComparison !== 0) {
+                return dateComparison;
+            }
+
+            // Use the ID as a fallback when dates are equal or missing.
+            return Number(firstItem.id) - Number(secondItem.id);
+        }
+
+        // Newest First is the default sorting option.
+        const dateComparison = secondDate.localeCompare(firstDate);
+
+        if (dateComparison !== 0) {
+            return dateComparison;
+        }
+
+        // Use the ID as a fallback when dates are equal or missing.
+        return Number(secondItem.id) - Number(firstItem.id);
+    });
+}
+
+
+// =========================================================
+// GET FILTERED REPORTS
+// =========================================================
+
+// Applies the search text, status filter, and date filter together.
+function getFilteredItems() {
+    const searchText = searchInput.value.trim().toLowerCase();
+    const selectedStatus = filterStatus.value;
+    const selectedDate = filterDate.value;
+
+    const filteredItems = items.filter(function(item) {
+        const matchesText = matchesSearch(item, searchText);
+
+        const matchesStatus =
+            selectedStatus === "all" ||
+            item.status === selectedStatus;
+
+        const matchesDate = matchesDateFilter(item, selectedDate);
+
+        // A report must match every active filter.
+        return matchesText && matchesStatus && matchesDate;
+    });
+
+    return sortFilteredItems(filteredItems);
 }
 
 
@@ -49,38 +233,18 @@ function saveItems() {
 // DISPLAY REPORTS
 // =========================================================
 
-// Displays the reports that match the search and status filter.
+// Displays reports that match the active filters.
 function displayItems() {
-    // Removes the previously displayed cards before showing updated results.
+    // Clear the old report cards.
     itemsContainer.replaceChildren();
 
-    // Converts the search text to lowercase for case-insensitive searching.
-    const searchText = searchInput.value.trim().toLowerCase();
+    const filteredItems = getFilteredItems();
 
-    // Gets the status selected by the user.
-    const selectedStatus = filterStatus.value;
+    // Update the count of matching reports.
+    resultCount.textContent =
+        `${filteredItems.length} report${filteredItems.length === 1 ? "" : "s"} found`;
 
-    // Filters the reports according to the search text and selected status.
-    const filteredItems = items.filter(function(item) {
-        // Supports older saved records that might not contain every field.
-        const itemName = String(item.name || "");
-        const itemLocation = String(item.location || "");
-
-        // Checks whether the name or location contains the search text.
-        const matchesSearch =
-            itemName.toLowerCase().includes(searchText) ||
-            itemLocation.toLowerCase().includes(searchText);
-
-        // Shows all statuses when "all" is selected.
-        const matchesStatus =
-            selectedStatus === "all" ||
-            item.status === selectedStatus;
-
-        // A report must match both conditions to appear.
-        return matchesSearch && matchesStatus;
-    });
-
-    // Displays a message when no reports match the current search.
+    // Show a helpful message when there are no matching reports.
     if (filteredItems.length === 0) {
         const emptyMessage = document.createElement("p");
 
@@ -91,43 +255,40 @@ function displayItems() {
                 "No reports yet. Add a lost or found item above.";
         } else {
             emptyMessage.textContent =
-                "No items found. Try another search or status filter.";
+                "No matching reports found. Try changing your search or filters.";
         }
 
         itemsContainer.appendChild(emptyMessage);
         return;
     }
 
-    // Creates a card for each report that matches the filters.
+    // Create a card for each report.
     filteredItems.forEach(function(item) {
         const itemCard = document.createElement("article");
-
         itemCard.className = "item-card";
 
-        // Creates the item name heading.
+        // Item name.
         const itemTitle = document.createElement("h3");
         itemTitle.textContent = item.name || "Unnamed Item";
 
-        // Creates the status line.
+        // Status.
         const statusParagraph = document.createElement("p");
         const statusLabel = document.createElement("strong");
         const statusValue = document.createElement("span");
 
         statusLabel.textContent = "Status: ";
         statusValue.className = "status";
+        statusValue.textContent = item.status || "Unknown";
 
-        // Adds a different class to distinguish Lost and Found reports.
         if (item.status === "Lost") {
             statusValue.classList.add("status-lost");
         } else if (item.status === "Found") {
             statusValue.classList.add("status-found");
         }
 
-        statusValue.textContent = item.status || "Unknown";
-
         statusParagraph.append(statusLabel, statusValue);
 
-        // Creates the item description.
+        // Description.
         const descriptionParagraph = document.createElement("p");
         const descriptionLabel = document.createElement("strong");
 
@@ -135,10 +296,12 @@ function displayItems() {
 
         descriptionParagraph.append(
             descriptionLabel,
-            document.createTextNode(item.description || "No description provided.")
+            document.createTextNode(
+                item.description || "No description provided."
+            )
         );
 
-        // Creates the location line.
+        // Location.
         const locationParagraph = document.createElement("p");
         const locationLabel = document.createElement("strong");
 
@@ -149,7 +312,7 @@ function displayItems() {
             document.createTextNode(item.location || "Not provided")
         );
 
-        // Creates the reporter name line.
+        // Reporter name.
         const reporterParagraph = document.createElement("p");
         const reporterLabel = document.createElement("strong");
 
@@ -160,7 +323,7 @@ function displayItems() {
             document.createTextNode(item.reporter || "Not provided")
         );
 
-        // Creates the contact number line.
+        // Contact number.
         const contactParagraph = document.createElement("p");
         const contactLabel = document.createElement("strong");
 
@@ -171,37 +334,35 @@ function displayItems() {
             document.createTextNode(item.contact || "Not provided")
         );
 
-        // Displays the report date.
+        // Report date.
         const dateParagraph = document.createElement("p");
         const dateLabel = document.createElement("strong");
 
         dateLabel.textContent = "Date Reported: ";
 
-        // Older reports may not have a date, so display a fallback message.
         dateParagraph.append(
             dateLabel,
             document.createTextNode(item.reportDate || "Not recorded")
         );
 
-        // Creates the delete button for this report.
+        // Delete button.
         const deleteButton = document.createElement("button");
 
         deleteButton.type = "button";
         deleteButton.className = "delete-button";
         deleteButton.textContent = "Delete";
 
-        // Adds an accessible label to identify the report being deleted.
         deleteButton.setAttribute(
             "aria-label",
             `Delete report for ${item.name || "unnamed item"}`
         );
 
-        // Calls deleteItem with the report's unique ID.
+        // The report ID identifies which report should be deleted.
         deleteButton.addEventListener("click", function() {
             deleteItem(item.id);
         });
 
-        // Adds all report information and its button to the card.
+        // Put the report information into the card.
         itemCard.append(
             itemTitle,
             statusParagraph,
@@ -213,7 +374,6 @@ function displayItems() {
             deleteButton
         );
 
-        // Adds the completed card to the page.
         itemsContainer.appendChild(itemCard);
     });
 }
@@ -225,10 +385,9 @@ function displayItems() {
 
 // Runs when the user submits the report form.
 itemForm.addEventListener("submit", function(event) {
-    // Prevents the browser from reloading the page.
     event.preventDefault();
 
-    // Reads the values entered into the form.
+    // Read and trim the form values.
     const itemName = document.getElementById("itemName").value.trim();
     const itemStatus = document.getElementById("itemStatus").value;
     const itemDescription =
@@ -241,7 +400,7 @@ itemForm.addEventListener("submit", function(event) {
         document.getElementById("contactNumber").value.trim();
     const reportDate = reportDateInput.value;
 
-    // Checks that required text fields are not empty or whitespace only.
+    // Prevent fields containing only spaces from being accepted.
     if (
         !itemName ||
         !itemDescription ||
@@ -253,7 +412,7 @@ itemForm.addEventListener("submit", function(event) {
         return;
     }
 
-    // Ensures that the contact number contains acceptable characters.
+    // Check that the contact number uses acceptable characters.
     const validContact = /^[0-9+() -]{7,20}$/.test(contactNumber);
 
     if (!validContact) {
@@ -262,7 +421,7 @@ itemForm.addEventListener("submit", function(event) {
         return;
     }
 
-    // Checks that the report date is valid and is not in the future.
+    // Reject invalid dates and dates later than today.
     if (
         !reportDate ||
         Number.isNaN(new Date(`${reportDate}T12:00:00`).getTime()) ||
@@ -273,11 +432,9 @@ itemForm.addEventListener("submit", function(event) {
         return;
     }
 
-    // Creates a new report object.
+    // Create the new report object.
     const newItem = {
-        // Uses the current timestamp as a simple unique report ID.
         id: Date.now(),
-
         name: itemName,
         status: itemStatus,
         description: itemDescription,
@@ -287,22 +444,17 @@ itemForm.addEventListener("submit", function(event) {
         reportDate: reportDate
     };
 
-    // Adds the new report to the array.
+    // Add and save the report.
     items.push(newItem);
-
-    // Saves the updated array to localStorage.
     saveItems();
 
-    // Clears the form after successful submission.
+    // Reset the form and restore today's date.
     itemForm.reset();
-
-    // Restores today's date as the default for the next report.
     reportDateInput.value = getTodayDate();
 
-    // Refreshes the report list using the current search and filter.
+    // Refresh the results without clearing the user's active filters.
     displayItems();
 
-    // Informs the user that the report was successfully added.
     alert("Item report added successfully!");
 });
 
@@ -311,45 +463,68 @@ itemForm.addEventListener("submit", function(event) {
 // DELETE A REPORT
 // =========================================================
 
-// Deletes a report after the user confirms the action.
+// Deletes a report after confirmation.
 function deleteItem(id) {
-    // Asks the user to confirm before permanently deleting the report.
     const confirmDelete = confirm(
         "Are you sure you want to delete this report?"
     );
 
-    if (confirmDelete) {
-        // Keeps all reports except the one with the selected ID.
-        items = items.filter(function(item) {
-            return item.id !== id;
-        });
-
-        // Saves the updated list.
-        saveItems();
-
-        // Refreshes the visible reports.
-        displayItems();
+    if (!confirmDelete) {
+        return;
     }
+
+    // Remove the selected report by its unique ID.
+    items = items.filter(function(item) {
+        return item.id !== id;
+    });
+
+    // Save the updated array and refresh the results.
+    saveItems();
+    displayItems();
 }
 
 
 // =========================================================
-// SEARCH AND FILTER EVENT LISTENERS
+// RESET FILTERS
 // =========================================================
 
-// Refreshes the report list whenever the search text changes.
+// Clears search and restores the default filter and sort settings.
+function resetFilters() {
+    searchInput.value = "";
+    filterStatus.value = "all";
+    filterDate.value = "all";
+    sortReports.value = "newest";
+
+    displayItems();
+}
+
+
+// =========================================================
+// EVENT LISTENERS
+// =========================================================
+
+// Update results while the user types.
 searchInput.addEventListener("input", displayItems);
 
-// Refreshes the report list whenever the selected status changes.
+// Update results when the status filter changes.
 filterStatus.addEventListener("change", displayItems);
+
+// Update results when the date filter changes.
+filterDate.addEventListener("change", displayItems);
+
+// Update results when the sorting option changes.
+sortReports.addEventListener("change", displayItems);
+
+// Reset all search and filter controls.
+resetFiltersButton.addEventListener("click", resetFilters);
 
 
 // =========================================================
 // INITIAL PAGE SETUP
 // =========================================================
 
-// Sets today's date as the default date for a new report.
+// Set today's date as the default date for new reports.
 reportDateInput.value = getTodayDate();
 
-// Displays all saved reports when the page first opens.
+// Display all saved reports when the page opens.
 displayItems();
