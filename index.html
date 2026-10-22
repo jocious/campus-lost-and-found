@@ -2,52 +2,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Sets the character encoding so text displays correctly. -->
     <meta charset="UTF-8">
+
+    <!-- Makes the layout adjust to desktop, tablet, and mobile screens. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Campus Lost &amp; Found</title>
+    <!-- Sets the title shown in the browser tab. -->
+    <title>Campus Lost and Found</title>
 
+    <!-- Connects this HTML file to the CSS design file. -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Loads JavaScript after the HTML has been parsed. -->
     <script src="script.js" defer></script>
 </head>
 <body>
-
-    <header>
-        <h1>Campus Lost &amp; Found</h1>
-        <p>Help students find their lost belongings.</p>
+    <header class="page-header">
+        <h1>Campus Lost and Found</h1>
+        <p>Report lost items and help return found belongings to their owners.</p>
     </header>
 
-    <main>
+    <main class="main-container">
+        <!-- Report form: used for both adding and editing reports. -->
+        <section class="form-section">
+            <h2 id="formTitle">Submit a Report</h2>
 
-        <!-- SEARCH AND FILTER SECTION -->
-        <section class="search-panel">
-            <h2>Find an Item</h2>
-            <p class="section-description">
-                Search reports and narrow the results using the filters.
-            </p>
-
-            <div class="search-section">
-                <div class="filter-group search-group">
-                    <label for="searchInput">Search Reports</label>
+            <form id="itemForm">
+                <div class="form-group">
+                    <label for="itemName">Item Name</label>
                     <input
-                        type="search"
-                        id="searchInput"
-                        placeholder="Name, location, description, reporter..."
-                        aria-label="Search reports"
+                        type="text"
+                        id="itemName"
+                        placeholder="Example: Black wallet"
+                        required
                     >
                 </div>
 
-                <div class="filter-group">
-                    <label for="filterStatus">Item Status</label>
-                    <select id="filterStatus">
-                        <option value="all">All Items</option>
+                <div class="form-group">
+                    <label for="itemStatus">Report Status</label>
+                    <select id="itemStatus" required>
                         <option value="Lost">Lost</option>
                         <option value="Found">Found</option>
                     </select>
                 </div>
 
-                <div class="filter-group">
-                    <label for="filterDate">Report Date</label>
+                <div class="form-group">
+                    <label for="itemDescription">Description</label>
+                    <textarea
+                        id="itemDescription"
+                        placeholder="Describe the item"
+                        rows="3"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemLocation">Location</label>
+                    <input
+                        type="text"
+                        id="itemLocation"
+                        placeholder="Example: Library"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="reporterName">Reporter Name</label>
+                    <input
+                        type="text"
+                        id="reporterName"
+                        placeholder="Enter your name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="contactNumber">Contact Number</label>
+                    <input
+                        type="tel"
+                        id="contactNumber"
+                        placeholder="Example: 09123456789"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="reportDate">Report Date</label>
+                    <input type="date" id="reportDate" required>
+                </div>
+
+                <!-- The same submit button adds or updates, depending on the form mode. -->
+                <div class="form-actions">
+                    <button type="submit" id="submitButton">Submit Report</button>
+
+                    <!-- Hidden until the user starts editing a report. -->
+                    <button
+                        type="button"
+                        id="cancelEditButton"
+                        class="cancel-button"
+                        hidden
+                    >
+                        Cancel Edit
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Search and filtering controls from Commit 2. -->
+        <section class="reports-section">
+            <h2>Lost and Found Reports</h2>
+
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label for="searchInput">Search Reports</label>
+                    <input
+                        type="search"
+                        id="searchInput"
+                        placeholder="Search name, location, description..."
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="filterStatus">Filter by Status</label>
+                    <select id="filterStatus">
+                        <option value="All">All Statuses</option>
+                        <option value="Lost">Lost</option>
+                        <option value="Found">Found</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filterDate">Filter by Date</label>
                     <select id="filterDate">
                         <option value="all">All Dates</option>
                         <option value="today">Today</option>
@@ -56,7 +142,7 @@
                     </select>
                 </div>
 
-                <div class="filter-group">
+                <div class="form-group">
                     <label for="sortReports">Sort Reports</label>
                     <select id="sortReports">
                         <option value="newest">Newest First</option>
@@ -66,106 +152,21 @@
                 </div>
             </div>
 
-            <div class="search-actions">
-                <p id="resultCount" class="result-count" aria-live="polite">
-                    0 reports found
-                </p>
-
-                <button
-                    type="button"
-                    id="resetFiltersButton"
-                    class="reset-button"
-                >
+            <div class="filter-actions">
+                <button type="button" id="resetFiltersButton" class="reset-button">
                     Reset Filters
                 </button>
+
+                <p id="resultCount" aria-live="polite">0 reports found</p>
             </div>
+
+            <!-- JavaScript displays the saved reports inside this container. -->
+            <div id="itemsContainer" class="items-container"></div>
         </section>
-
-        <!-- REPORT FORM -->
-        <section class="form-section">
-            <h2>Report an Item</h2>
-            <p class="section-description">
-                Provide accurate information to help reunite items with their owners.
-            </p>
-
-            <form id="itemForm">
-
-                <label for="itemName">Item Name</label>
-                <input
-                    type="text"
-                    id="itemName"
-                    placeholder="Example: Black Wallet"
-                    maxlength="100"
-                    required
-                >
-
-                <label for="itemStatus">Status</label>
-                <select id="itemStatus" required>
-                    <option value="Lost">Lost</option>
-                    <option value="Found">Found</option>
-                </select>
-
-                <label for="itemDescription">Description</label>
-                <textarea
-                    id="itemDescription"
-                    placeholder="Describe the item, including its color or identifying features..."
-                    maxlength="1000"
-                    required
-                ></textarea>
-
-                <label for="itemLocation">Location</label>
-                <input
-                    type="text"
-                    id="itemLocation"
-                    placeholder="Example: Library"
-                    maxlength="150"
-                    required
-                >
-
-                <label for="reporterName">Your Name</label>
-                <input
-                    type="text"
-                    id="reporterName"
-                    placeholder="Example: Juan Dela Cruz"
-                    maxlength="100"
-                    required
-                >
-
-                <label for="contactNumber">Contact Number</label>
-                <input
-                    type="tel"
-                    id="contactNumber"
-                    placeholder="Example: 09123456789"
-                    maxlength="20"
-                    pattern="[0-9+() -]{7,20}"
-                    title="Enter a valid contact number using digits and optional +, spaces, parentheses, or hyphens."
-                    required
-                >
-
-                <label for="reportDate">Date Reported</label>
-                <input type="date" id="reportDate" required>
-
-                <button type="submit" id="submitButton">
-                    Add Report
-                </button>
-
-            </form>
-        </section>
-
-        <!-- REPORTED ITEMS -->
-        <section class="items-section">
-            <h2>Reported Items</h2>
-
-            <div id="itemsContainer" aria-live="polite">
-                <p class="no-items">Loading reports...</p>
-            </div>
-        </section>
-
     </main>
 
-    <footer>
-        <p>Campus Lost &amp; Found &copy; 2026</p>
+    <footer class="page-footer">
+        <p>Campus Lost and Found System</p>
     </footer>
-
 </body>
 </html>
