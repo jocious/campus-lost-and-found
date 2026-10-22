@@ -1,10 +1,10 @@
 
-/* Applies predictable sizing to every element. */
+/* Makes element sizes easier to control. */
 * {
     box-sizing: border-box;
 }
 
-/* Styles the entire webpage. */
+/* Styles the whole webpage. */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -13,7 +13,7 @@ body {
     line-height: 1.6;
 }
 
-/* Styles the main page heading. */
+/* Styles the main heading area. */
 .page-header {
     background-color: midnightblue;
     color: white;
@@ -29,14 +29,15 @@ body {
     margin: 0;
 }
 
-/* Keeps the main content centered and readable. */
+/* Centers the main content and limits its width. */
 .main-container {
     width: 90%;
     max-width: 1100px;
     margin: 25px auto;
 }
 
-/* Gives the form and reports separate white panels. */
+/* Gives each major section a white panel. */
+.summary-section,
 .form-section,
 .reports-section {
     background-color: white;
@@ -51,7 +52,48 @@ h2 {
     color: midnightblue;
 }
 
-/* Organizes the form fields vertically. */
+/* Lays out the three summary cards. */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.summary-card {
+    padding: 18px;
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid lightgray;
+}
+
+.summary-card h3 {
+    margin: 0 0 8px;
+    font-size: 16px;
+}
+
+.summary-card p {
+    margin: 0;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+/* Colors distinguish each summary category. */
+.lost-summary {
+    background-color: mistyrose;
+    color: firebrick;
+}
+
+.found-summary {
+    background-color: honeydew;
+    color: forestgreen;
+}
+
+.returned-summary {
+    background-color: aliceblue;
+    color: midnightblue;
+}
+
+/* Organizes form labels and fields vertically. */
 .form-group {
     display: flex;
     flex-direction: column;
@@ -63,7 +105,7 @@ label {
     font-weight: bold;
 }
 
-/* Gives inputs a consistent appearance. */
+/* Gives text inputs, dropdowns, and text areas a consistent style. */
 input,
 select,
 textarea {
@@ -80,7 +122,7 @@ textarea {
     resize: vertical;
 }
 
-/* Makes the currently selected field easy to identify. */
+/* Highlights a field when the user selects it. */
 input:focus,
 select:focus,
 textarea:focus {
@@ -88,14 +130,14 @@ textarea:focus {
     border-color: midnightblue;
 }
 
-/* Groups the form buttons. */
+/* Groups the form buttons together. */
 .form-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-/* Shared button styling. */
+/* Common button appearance. */
 button {
     border: none;
     border-radius: 5px;
@@ -117,7 +159,7 @@ button:focus-visible {
     outline-offset: 2px;
 }
 
-/* Styles the cancel and reset buttons differently from the main action. */
+/* Secondary button colors. */
 .cancel-button {
     background-color: dimgray;
 }
@@ -134,14 +176,14 @@ button:focus-visible {
     background-color: dimgray;
 }
 
-/* Places search and filter controls in a grid. */
+/* Organizes search and filter controls into two columns. */
 .filter-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0 18px;
 }
 
-/* Places the reset button and result count on one line when possible. */
+/* Places the reset button and report count neatly. */
 .filter-actions {
     display: flex;
     align-items: center;
@@ -156,13 +198,14 @@ button:focus-visible {
     font-weight: bold;
 }
 
-/* Displays report cards in a vertical list. */
+/* Stacks the report cards vertically. */
 .items-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
+/* Styles each report card. */
 .item-card {
     padding: 18px;
     border: 1px solid lightgray;
@@ -180,7 +223,7 @@ button:focus-visible {
     margin: 6px 0;
 }
 
-/* Gives Lost and Found reports distinct visual labels. */
+/* Status text colors. */
 .status-lost {
     color: firebrick;
     font-weight: bold;
@@ -191,7 +234,12 @@ button:focus-visible {
     font-weight: bold;
 }
 
-/* Keeps the Edit and Delete buttons together. */
+.status-returned {
+    color: midnightblue;
+    font-weight: bold;
+}
+
+/* Keeps report action buttons together. */
 .item-actions {
     display: flex;
     flex-wrap: wrap;
@@ -207,6 +255,14 @@ button:focus-visible {
     background-color: royalblue;
 }
 
+.return-button {
+    background-color: forestgreen;
+}
+
+.return-button:hover {
+    background-color: darkgreen;
+}
+
 .delete-button {
     background-color: firebrick;
 }
@@ -215,7 +271,7 @@ button:focus-visible {
     background-color: darkred;
 }
 
-/* Shows a helpful message when there are no matching reports. */
+/* Displays a message when no reports match the selected filters. */
 .empty-message {
     padding: 20px;
     text-align: center;
@@ -231,12 +287,13 @@ button:focus-visible {
     color: dimgray;
 }
 
-/* Adjusts the page for tablets and smaller screens. */
+/* Tablet layout. */
 @media (max-width: 700px) {
     .main-container {
         width: 95%;
     }
 
+    .summary-section,
     .form-section,
     .reports-section {
         padding: 18px;
@@ -245,9 +302,25 @@ button:focus-visible {
     .filter-grid {
         grid-template-columns: 1fr;
     }
+
+    .summary-grid {
+        gap: 10px;
+    }
+
+    .summary-card {
+        padding: 12px 8px;
+    }
+
+    .summary-card h3 {
+        font-size: 14px;
+    }
+
+    .summary-card p {
+        font-size: 25px;
+    }
 }
 
-/* Makes buttons and spacing comfortable on phones. */
+/* Phone layout. */
 @media (max-width: 480px) {
     .page-header {
         padding: 20px 12px;
@@ -255,6 +328,10 @@ button:focus-visible {
 
     .page-header h1 {
         font-size: 24px;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
     }
 
     .form-actions button,

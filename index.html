@@ -2,19 +2,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Sets the character encoding so text displays correctly. -->
     <meta charset="UTF-8">
-
-    <!-- Makes the layout adjust to desktop, tablet, and mobile screens. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Sets the title shown in the browser tab. -->
     <title>Campus Lost and Found</title>
 
-    <!-- Connects this HTML file to the CSS design file. -->
     <link rel="stylesheet" href="style.css">
-
-    <!-- Loads JavaScript after the HTML has been parsed. -->
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -24,7 +17,30 @@
     </header>
 
     <main class="main-container">
-        <!-- Report form: used for both adding and editing reports. -->
+
+        <!-- Summary cards display the total number of reports in each status. -->
+        <section class="summary-section">
+            <h2>Report Summary</h2>
+
+            <div class="summary-grid">
+                <article class="summary-card lost-summary">
+                    <h3>Lost Items</h3>
+                    <p id="lostCount">0</p>
+                </article>
+
+                <article class="summary-card found-summary">
+                    <h3>Found Items</h3>
+                    <p id="foundCount">0</p>
+                </article>
+
+                <article class="summary-card returned-summary">
+                    <h3>Returned Items</h3>
+                    <p id="returnedCount">0</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- This form is used to add new reports and edit existing reports. -->
         <section class="form-section">
             <h2 id="formTitle">Submit a Report</h2>
 
@@ -44,6 +60,7 @@
                     <select id="itemStatus" required>
                         <option value="Lost">Lost</option>
                         <option value="Found">Found</option>
+                        <option value="Returned">Returned</option>
                     </select>
                 </div>
 
@@ -92,11 +109,9 @@
                     <input type="date" id="reportDate" required>
                 </div>
 
-                <!-- The same submit button adds or updates, depending on the form mode. -->
                 <div class="form-actions">
                     <button type="submit" id="submitButton">Submit Report</button>
 
-                    <!-- Hidden until the user starts editing a report. -->
                     <button
                         type="button"
                         id="cancelEditButton"
@@ -109,7 +124,7 @@
             </form>
         </section>
 
-        <!-- Search and filtering controls from Commit 2. -->
+        <!-- Search, filter, and sorting controls from earlier commits. -->
         <section class="reports-section">
             <h2>Lost and Found Reports</h2>
 
@@ -129,6 +144,7 @@
                         <option value="All">All Statuses</option>
                         <option value="Lost">Lost</option>
                         <option value="Found">Found</option>
+                        <option value="Returned">Returned</option>
                     </select>
                 </div>
 
@@ -153,14 +169,18 @@
             </div>
 
             <div class="filter-actions">
-                <button type="button" id="resetFiltersButton" class="reset-button">
+                <button
+                    type="button"
+                    id="resetFiltersButton"
+                    class="reset-button"
+                >
                     Reset Filters
                 </button>
 
                 <p id="resultCount" aria-live="polite">0 reports found</p>
             </div>
 
-            <!-- JavaScript displays the saved reports inside this container. -->
+            <!-- JavaScript inserts report cards here. -->
             <div id="itemsContainer" class="items-container"></div>
         </section>
     </main>
